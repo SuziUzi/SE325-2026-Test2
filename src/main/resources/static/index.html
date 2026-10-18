@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoboLab Booking</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <div class="brand">🤖 RoboLab <span>Booking</span></div>
+  <div class="session">
+    <span id="who" class="muted">Not logged in</span>
+    <button id="logout" class="ghost hidden">Log out</button>
+  </div>
+</header>
+
+<main>
+  <!-- Logged out -->
+  <section id="login-view" class="login-card">
+    <h2>Sign in</h2>
+    <form id="login-form">
+      <label>Username <input id="username" autocomplete="username" placeholder="alice"></label>
+      <label>Password <input id="password" type="password" autocomplete="current-password" placeholder="••••••"></label>
+      <button type="submit">Log in</button>
+      <p id="login-error" class="error"></p>
+    </form>
+  </section>
+
+  <!-- Logged in -->
+  <div id="app-view" class="hidden">
+    <div class="toolbar">
+      <h2>Availability</h2>
+      <div class="filters">
+        <button id="week-prev" class="ghost" title="Earlier">‹</button>
+        <label>Week of <input id="board-start" type="date" value="2026-10-12"></label>
+        <button id="week-next" class="ghost" title="Later">›</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="sw free"></i> Free — click to book</span>
+      <span><i class="sw mine"></i> Yours — click to view / cancel</span>
+      <span><i class="sw taken"></i> Booked</span>
+    </div>
+
+    <div class="board-wrap">
+      <div id="board" class="board"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Booking dialog -->
+<dialog id="book-dialog">
+  <form method="dialog" id="book-form">
+    <h3 id="book-title">Book robot</h3>
+    <p id="book-when" class="muted"></p>
+    <label>Purpose <input id="book-purpose" placeholder="What is it for?" maxlength="500" required></label>
+    <p id="book-error" class="error"></p>
+    <menu>
+      <button type="button" id="book-cancel" class="ghost">Cancel</button>
+      <button type="submit" value="book">Book it</button>
+    </menu>
+  </form>
+</dialog>
+
+<!-- Your-booking details dialog -->
+<dialog id="cell-dialog">
+  <h3 id="cell-title">Your booking</h3>
+  <p id="cell-when" class="muted"></p>
+  <div class="cell-purpose">Purpose: <span id="cell-purpose"></span></div>
+  <menu>
+    <button type="button" id="cell-close" class="ghost">Close</button>
+  </menu>
+</dialog>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
