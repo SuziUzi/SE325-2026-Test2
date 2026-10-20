@@ -29,6 +29,19 @@
 
   <!-- Logged in -->
   <div id="app-view" class="hidden">
+    <section id="fleet-management" class="fleet-management hidden">
+      <div class="toolbar">
+        <h2>Manage robot fleet</h2>
+      </div>
+      <form id="robot-form" class="robot-form">
+        <label>Robot name <input id="robot-name" required></label>
+        <label>Model <input id="robot-model" required></label>
+        <label>Location <input id="robot-location" required></label>
+        <button type="submit">Add robot</button>
+      </form>
+      <div id="robot-list" class="robot-list"></div>
+    </section>
+
     <div class="toolbar">
       <h2>Availability</h2>
       <div class="filters">

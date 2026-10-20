@@ -54,6 +54,7 @@ function render() {
   $("login-view").classList.toggle("hidden", inApp);
   $("app-view").classList.toggle("hidden", !inApp);
   $("logout").classList.toggle("hidden", !inApp);
+  $("fleet-management").classList.toggle("hidden", !inApp || me.role !== "ADMIN");
   $("who").textContent = inApp ? `${me.fullName} · ${me.role}` : "Not logged in";
   if (inApp) loadBoard();
 }
@@ -93,7 +94,31 @@ async function loadBoard() {
     (mineByRobot[b.robotId] ||= {})[b.date] = { bookingId: b.id, purpose: b.purpose };
   }
 
+  renderRobotList();
   renderBoard();
+}
+
+function renderRobotList() {
+  const list = $("robot-list");
+  list.replaceChildren();
+  for (const robot of robots) {
+    const item = document.createElement("div");
+    item.className = "robot-item";
+    const details = document.createElement("div");
+    details.className = "robot-details";
+    const name = document.createElement("strong");
+    name.textContent = robot.name;
+    const description = document.createElement("span");
+    description.textContent = `${robot.model} · ${robot.location}`;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger";
+    remove.dataset.robot = robot.id;
+    remove.textContent = "Remove";
+    details.append(name, description);
+    item.append(details, remove);
+    list.appendChild(item);
+  }
 }
 
 function renderBoard() {
@@ -163,6 +188,37 @@ $("board").addEventListener("click", (e) => {
 $("board-start").addEventListener("change", renderBoard);
 $("week-prev").addEventListener("click", () => { $("board-start").value = addDays($("board-start").value, -7); renderBoard(); });
 $("week-next").addEventListener("click", () => { $("board-start").value = addDays($("board-start").value, 7); renderBoard(); });
+
+// ---------------------------------------------------------------- robot management
+
+$("robot-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await api("/api/robots", {
+      method: "POST",
+      body: JSON.stringify({
+        name: $("robot-name").value,
+        model: $("robot-model").value,
+        location: $("robot-location").value,
+      }),
+    });
+    $("robot-form").reset();
+    await loadBoard();
+    toast("Robot added.");
+  } catch (err) { toast(err.message, true); }
+});
+
+$("robot-list").addEventListener("click", async (e) => {
+  const button = e.target.closest("button[data-robot]");
+  if (!button) return;
+  const robot = robots.find((item) => item.id === Number(button.dataset.robot));
+  if (!robot || !window.confirm(`Remove ${robot.name}?`)) return;
+  try {
+    await api(`/api/robots/${robot.id}`, { method: "DELETE" });
+    await loadBoard();
+    toast("Robot removed.");
+  } catch (err) { toast(err.message, true); }
+});
 
 // ---------------------------------------------------------------- book dialog
 

@@ -60,6 +60,20 @@ button.danger:hover { background:rgba(255,107,107,.12); }
 /* toolbars */
 .toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:28px 0 14px; }
 .filters { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.fleet-management {
+  margin:28px 0;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--panel);
+}
+.fleet-management .toolbar { margin:0 0 14px; }
+.robot-form { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)) auto; gap:10px; align-items:end; }
+.robot-list { display:grid; gap:8px; margin-top:14px; }
+.robot-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 11px; background:var(--card); border-radius:10px; }
+.robot-details { display:flex; flex-direction:column; }
+.robot-details span { color:var(--muted); font-size:12px; }
+@media (max-width:700px) { .robot-form { grid-template-columns:1fr; } }
 
 /* legend */
 .legend { display:flex; flex-wrap:wrap; gap:16px; margin:0 0 12px; color:var(--muted); font-size:13px; }

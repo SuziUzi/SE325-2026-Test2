@@ -30,21 +30,33 @@ public class RobotRepository {
         return jdbc.query("SELECT id, name, model, location FROM robots ORDER BY id", ROBOT);
     }
 
+    public Robot insert(String name, String model, String location) {
+        return jdbc.queryForObject(
+                "INSERT INTO robots (name, model, location) VALUES (?, ?, ?) "
+                        + "RETURNING id, name, model, location",
+                ROBOT, name, model, location);
+    }
+
     public Optional<Robot> findById(long id) {
-        return jdbc.query("SELECT id, name, model, location FROM robots WHERE id = " + id, ROBOT)
+        return jdbc.query("SELECT id, name, model, location FROM robots WHERE id = ?", ROBOT, id)
                 .stream().findFirst();
+    }
+
+    public int deleteIfUnbooked(long id) {
+        return jdbc.update("DELETE FROM robots WHERE id = ? "
+                + "AND NOT EXISTS (SELECT 1 FROM bookings WHERE robot_id = ?)", id, id);
     }
 
     /** The days a robot is already booked, with who booked each (purpose hidden). */
     public List<ScheduleSlot> findBookings(long robotId) {
         String sql = "SELECT b.id, b.booking_date, u.username "
                 + "FROM bookings b JOIN users u ON u.id = b.user_id "
-                + "WHERE b.robot_id = " + robotId + " "
+                + "WHERE b.robot_id = ? "
                 + "ORDER BY b.booking_date";
 
         return jdbc.query(sql, (rs, i) -> new ScheduleSlot(
                 rs.getLong(1),
                 LocalDate.parse(rs.getString(2)),
-                rs.getString(3)));
+                rs.getString(3)), robotId);
     }
 }
