@@ -66,4 +66,12 @@ public class BookingRepository {
                 .stream()
                 .findFirst();
     }
+
+    public int deleteById(long id) {
+        return jdbc.update("DELETE FROM bookings WHERE id = ?", id);
+    }
+
+    public int deleteByIdAndUserId(long id, long userId) {
+        return jdbc.update("DELETE FROM bookings WHERE id = ? AND user_id = ?", id, userId);
+    }
 }

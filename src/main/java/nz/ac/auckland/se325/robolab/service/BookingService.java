@@ -57,6 +57,15 @@ public class BookingService {
         return bookings.findById(id).orElseThrow();
     }
 
+    public void cancel(User user, long bookingId) {
+        int deleted = user.isAdmin()
+                ? bookings.deleteById(bookingId)
+                : bookings.deleteByIdAndUserId(bookingId, user.id());
+        if (deleted == 0) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "No such booking");
+        }
+    }
+
     private static LocalDate parseDate(String value) {
         try {
             return LocalDate.parse(value);

@@ -85,7 +85,10 @@ async function loadBoard() {
   takenByRobot = {};
   await Promise.all(robots.map(async (r) => {
     const slots = await api(`/api/robots/${r.id}/bookings`).catch(() => []);
-    takenByRobot[r.id] = Object.fromEntries(slots.map((s) => [s.date, s.bookedBy]));
+    takenByRobot[r.id] = Object.fromEntries(slots.map((s) => [s.date, {
+      bookingId: s.bookingId,
+      bookedBy: s.bookedBy,
+    }]));
   }));
 
   mineByRobot = {};
@@ -147,7 +150,7 @@ function renderBoard() {
 
     for (const date of dates) {
       const mineHere = (mineByRobot[r.id] || {})[date];
-      const takenBy = (takenByRobot[r.id] || {})[date];
+      const taken = (takenByRobot[r.id] || {})[date];
       const c = document.createElement("button");
       c.type = "button";
       c.dataset.robot = r.id;
@@ -157,10 +160,11 @@ function renderBoard() {
         c.className = "slot mine";
         c.dataset.booking = mineHere.bookingId;
         c.textContent = "You";
-      } else if (takenBy) {
+      } else if (taken) {
         c.className = "slot taken";
-        c.textContent = takenBy;
-        c.title = `Booked by ${takenBy}`;
+        c.dataset.booking = taken.bookingId;
+        c.textContent = taken.bookedBy;
+        c.title = `Booked by ${taken.bookedBy}`;
       } else {
         c.className = "slot free";
         c.textContent = "+";
@@ -182,7 +186,10 @@ $("board").addEventListener("click", (e) => {
   if (!c) return;
   if (c.classList.contains("free")) openBook(Number(c.dataset.robot), c.dataset.date);
   else if (c.classList.contains("mine")) openCell(Number(c.dataset.robot), c.dataset.date);
-  else if (c.classList.contains("taken")) toast("Booked by " + c.textContent);
+  else if (c.classList.contains("taken")) {
+    if (me.role === "ADMIN") cancelBooking(Number(c.dataset.booking), c.textContent);
+    else toast("Booked by " + c.textContent);
+  }
 });
 
 $("board-start").addEventListener("change", renderBoard);
@@ -264,13 +271,27 @@ function openCell(robotId, date) {
   const robot = robots.find((r) => r.id === robotId);
   const mineHere = (mineByRobot[robotId] || {})[date];
   if (!robot || !mineHere) return;
+  cellDialog.dataset.booking = mineHere.bookingId;
   $("cell-title").textContent = robot.name;
   $("cell-when").textContent = dayLabels(date).wd + ", " + dayLabels(date).dm + " " + date.slice(0, 4);
   $("cell-purpose").textContent = mineHere.purpose;
   cellDialog.showModal();
 }
 
+async function cancelBooking(bookingId, label, closeDetails = false) {
+  if (!window.confirm(`Cancel ${label}?`)) return;
+  try {
+    await api(`/api/bookings/${bookingId}`, { method: "DELETE" });
+    if (closeDetails) cellDialog.close();
+    await loadBoard();
+    toast("Booking cancelled.");
+  } catch (err) { toast(err.message, true); }
+}
+
 $("cell-close").addEventListener("click", () => cellDialog.close());
+$("cell-cancel").addEventListener("click", () => {
+  cancelBooking(Number(cellDialog.dataset.booking), "your booking", true);
+});
 
 // ---------------------------------------------------------------- boot
 
