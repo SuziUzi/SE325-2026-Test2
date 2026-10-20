@@ -210,7 +210,7 @@ function openCell(robotId, date) {
   if (!robot || !mineHere) return;
   $("cell-title").textContent = robot.name;
   $("cell-when").textContent = dayLabels(date).wd + ", " + dayLabels(date).dm + " " + date.slice(0, 4);
-  $("cell-purpose").innerHTML = mineHere.purpose;
+  $("cell-purpose").textContent = mineHere.purpose;
   cellDialog.showModal();
 }
 
