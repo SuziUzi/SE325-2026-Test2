@@ -57,16 +57,13 @@ public class BookingRepository {
         return jdbc.query(SELECT_BOOKING + "WHERE b.id = ?", BOOKING, id).stream().findFirst();
     }
 
-    /** Is this robot already booked on the given day? */
-    public boolean isBookedOn(long robotId, String date) {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM bookings "
-                + "WHERE robot_id = ? AND booking_date = ?", Integer.class, robotId, date);
-        return count != null && count > 0;
-    }
-
-    public long insert(long robotId, long userId, String date, String purpose) {
-        jdbc.update("INSERT INTO bookings (robot_id, user_id, booking_date, purpose) VALUES (?, ?, ?, ?)",
-                robotId, userId, date, purpose);
-        return jdbc.queryForObject("SELECT MAX(id) FROM bookings", Long.class);
+    public Optional<Long> insertIfAvailable(long robotId, long userId, String date, String purpose) {
+        String sql = "INSERT INTO bookings (robot_id, user_id, booking_date, purpose) "
+                + "VALUES (?, ?, ?, ?) "
+                + "ON CONFLICT (robot_id, booking_date) DO NOTHING "
+                + "RETURNING id";
+        return jdbc.query(sql, (rs, i) -> rs.getLong("id"), robotId, userId, date, purpose)
+                .stream()
+                .findFirst();
     }
 }

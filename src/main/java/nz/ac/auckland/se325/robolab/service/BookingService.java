@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import nz.ac.auckland.se325.robolab.model.Booking;
 import nz.ac.auckland.se325.robolab.model.BookingRequest;
@@ -36,7 +35,6 @@ public class BookingService {
         return bookings.findForUser(user.id(), q, sortBy, direction);
     }
 
-    @Transactional
     public Booking book(User user, BookingRequest request) {
         if (request.robotId() == null) {
             throw new IllegalArgumentException("robotId is required");
@@ -52,11 +50,10 @@ public class BookingService {
 
         Robot robot = robots.findById(request.robotId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "No such robot"));
-        if (bookings.isBookedOn(robot.id(), date.toString())) {
-            throw new ApiException(HttpStatus.CONFLICT, robot.name() + " is already booked on " + date);
-        }
 
-        long id = bookings.insert(robot.id(), user.id(), date.toString(), request.purpose().trim());
+        long id = bookings.insertIfAvailable(robot.id(), user.id(), date.toString(), request.purpose().trim())
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.CONFLICT, robot.name() + " is already booked on " + date));
         return bookings.findById(id).orElseThrow();
     }
 

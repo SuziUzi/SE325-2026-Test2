@@ -20,3 +20,6 @@ CREATE TABLE IF NOT EXISTS bookings (
     booking_date TEXT NOT NULL,   -- ISO-8601 date, e.g. 2026-10-12 (a robot is booked for the whole day)
     purpose      TEXT NOT NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bookings_robot_date
+    ON bookings (robot_id, booking_date);
