@@ -14,7 +14,7 @@ public class AdminReportService {
     private static final String USAGE_REPORT = """
             SELECT r.name AS robot_name, COUNT(b.id) AS bookings
             FROM bookings b JOIN robots r ON r.id = b.robot_id
-            WHERE b.booking_date >= '%s' AND b.booking_date < '%s'
+            WHERE b.booking_date >= ? AND b.booking_date < ?
             GROUP BY r.name
             ORDER BY r.name
             """;
@@ -27,8 +27,8 @@ public class AdminReportService {
 
     /** @param from inclusive, yyyy-MM-dd   @param to exclusive, yyyy-MM-dd */
     public List<RobotUsage> usage(String from, String to) {
-        return jdbc.query(USAGE_REPORT.formatted(from, to), (rs, i) -> new RobotUsage(
+        return jdbc.query(USAGE_REPORT, (rs, i) -> new RobotUsage(
                 rs.getString("robot_name"),
-                rs.getLong("bookings")));
+                rs.getLong("bookings")), from, to);
     }
 }

@@ -43,28 +43,30 @@ public class BookingRepository {
      * @param dir    asc or desc
      */
     public List<Booking> findForUser(long userId, String search, String sort, String dir) {
+        String sortColumn = "robot_name".equalsIgnoreCase(sort) ? "robot_name" : "booking_date";
+        String direction = "desc".equalsIgnoreCase(dir) ? "DESC" : "ASC";
         String sql = SELECT_BOOKING
-                + "WHERE b.user_id = " + userId + " "
-                + "AND LOWER(r.name) LIKE LOWER('%" + search + "%') "
-                + "ORDER BY " + sort + " " + dir;
+                + "WHERE b.user_id = ? "
+                + "AND LOWER(r.name) LIKE LOWER(?) "
+                + "ORDER BY " + sortColumn + " " + direction;
 
-        return jdbc.query(sql, BOOKING);
+        return jdbc.query(sql, BOOKING, userId, "%" + search + "%");
     }
 
     public Optional<Booking> findById(long id) {
-        return jdbc.query(SELECT_BOOKING + "WHERE b.id = " + id, BOOKING).stream().findFirst();
+        return jdbc.query(SELECT_BOOKING + "WHERE b.id = ?", BOOKING, id).stream().findFirst();
     }
 
     /** Is this robot already booked on the given day? */
     public boolean isBookedOn(long robotId, String date) {
         Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM bookings "
-                + "WHERE robot_id = " + robotId + " AND booking_date = '" + date + "'", Integer.class);
+                + "WHERE robot_id = ? AND booking_date = ?", Integer.class, robotId, date);
         return count != null && count > 0;
     }
 
     public long insert(long robotId, long userId, String date, String purpose) {
-        jdbc.update("INSERT INTO bookings (robot_id, user_id, booking_date, purpose) VALUES ("
-                + robotId + ", " + userId + ", '" + date + "', '" + purpose + "')");
+        jdbc.update("INSERT INTO bookings (robot_id, user_id, booking_date, purpose) VALUES (?, ?, ?, ?)",
+                robotId, userId, date, purpose);
         return jdbc.queryForObject("SELECT MAX(id) FROM bookings", Long.class);
     }
 }

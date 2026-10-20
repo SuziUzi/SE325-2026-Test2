@@ -19,13 +19,13 @@ public class UserRepository {
 
     public Optional<User> findByCredentials(String username, String password) {
         String sql = "SELECT id, username, full_name, role FROM users "
-                + "WHERE username = '" + username + "' AND password = '" + password + "'";
+                + "WHERE username = ? AND password = ?";
 
         List<User> users = jdbc.query(sql, (rs, i) -> new User(
                 rs.getLong("id"),
                 rs.getString("username"),
                 rs.getString("full_name"),
-                rs.getString("role")));
+                rs.getString("role")), username, password);
 
         return users.stream().findFirst();
     }
